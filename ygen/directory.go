@@ -221,6 +221,47 @@ func getOrderedDirDetails(langMapper LangMapper, directory map[string]*Directory
 		pd.Fields = make(map[string]*NodeDetails, len(dir.Fields))
 		for _, fn := range GetOrderedFieldNames(dir) {
 			field := dir.Fields[fn]
+
+			// Skip fields with deprecated status if SkipDeprecated is enabled
+			if opts.TransformationOptions.SkipDeprecated && field.Node != nil {
+				var status *yang.Value
+				switch node := field.Node.(type) {
+				case *yang.Container:
+					status = node.Status
+				case *yang.Leaf:
+					status = node.Status
+				case *yang.LeafList:
+					status = node.Status
+				case *yang.List:
+					status = node.Status
+				case *yang.Typedef:
+					status = node.Status
+				}
+				if status != nil && status.Name == "deprecated" {
+					continue // skip this field
+				}
+			}
+
+			// Skip fields with obsolete status if SkipObsolete is enabled
+			if opts.TransformationOptions.SkipObsolete && field.Node != nil {
+				var status *yang.Value
+				switch node := field.Node.(type) {
+				case *yang.Container:
+					status = node.Status
+				case *yang.Leaf:
+					status = node.Status
+				case *yang.LeafList:
+					status = node.Status
+				case *yang.List:
+					status = node.Status
+				case *yang.Typedef:
+					status = node.Status
+				}
+				if status != nil && status.Name == "obsolete" {
+					continue // skip this field
+				}
+			}
+
 			shadowField, hasShadowField := dir.ShadowedFields[fn]
 
 			mp, mm, err := findMapPaths(dir, fn, opts.TransformationOptions.CompressBehaviour.CompressEnabled(), false, opts.AbsoluteMapPaths)
