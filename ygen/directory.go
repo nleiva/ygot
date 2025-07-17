@@ -223,43 +223,13 @@ func getOrderedDirDetails(langMapper LangMapper, directory map[string]*Directory
 			field := dir.Fields[fn]
 
 			// Skip fields with deprecated status if SkipDeprecated is enabled
-			if opts.TransformationOptions.SkipDeprecated && field.Node != nil {
-				var status *yang.Value
-				switch node := field.Node.(type) {
-				case *yang.Container:
-					status = node.Status
-				case *yang.Leaf:
-					status = node.Status
-				case *yang.LeafList:
-					status = node.Status
-				case *yang.List:
-					status = node.Status
-				case *yang.Typedef:
-					status = node.Status
-				}
-				if status != nil && status.Name == "deprecated" {
-					continue // skip this field
-				}
+			if opts.TransformationOptions.SkipDeprecated && isDeprecated(field.Node) {
+				continue // skip this field
 			}
 
 			// Skip fields with obsolete status if SkipObsolete is enabled
-			if opts.TransformationOptions.SkipObsolete && field.Node != nil {
-				var status *yang.Value
-				switch node := field.Node.(type) {
-				case *yang.Container:
-					status = node.Status
-				case *yang.Leaf:
-					status = node.Status
-				case *yang.LeafList:
-					status = node.Status
-				case *yang.List:
-					status = node.Status
-				case *yang.Typedef:
-					status = node.Status
-				}
-				if status != nil && status.Name == "obsolete" {
-					continue // skip this field
-				}
+			if opts.TransformationOptions.SkipObsolete && isObsolete(field.Node) {
+				continue // skip this field
 			}
 
 			shadowField, hasShadowField := dir.ShadowedFields[fn]

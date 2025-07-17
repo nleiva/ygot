@@ -36,6 +36,48 @@ import (
 	gpb "github.com/openconfig/gnmi/proto/gnmi"
 )
 
+// isDeprecated checks if a YANG node has status "deprecated".
+func isDeprecated(node yang.Node) bool {
+	if node == nil {
+		return false
+	}
+	var status *yang.Value
+	switch n := node.(type) {
+	case *yang.Container:
+		status = n.Status
+	case *yang.Leaf:
+		status = n.Status
+	case *yang.LeafList:
+		status = n.Status
+	case *yang.List:
+		status = n.Status
+	case *yang.Typedef:
+		status = n.Status
+	}
+	return status != nil && status.Name == "deprecated"
+}
+
+// isObsolete checks if a YANG node has status "obsolete".
+func isObsolete(node yang.Node) bool {
+	if node == nil {
+		return false
+	}
+	var status *yang.Value
+	switch n := node.(type) {
+	case *yang.Container:
+		status = n.Status
+	case *yang.Leaf:
+		status = n.Status
+	case *yang.LeafList:
+		status = n.Status
+	case *yang.List:
+		status = n.Status
+	case *yang.Typedef:
+		status = n.Status
+	}
+	return status != nil && status.Name == "obsolete"
+}
+
 // ParseOpts contains parsing configuration for a given schema.
 type ParseOpts struct {
 	// IgnoreUnsupportedStatements ignores unsupported YANG statements when
@@ -321,43 +363,13 @@ func findMappableEntities(e *yang.Entry, dirs map[string]*yang.Entry, enums map[
 	var errs util.Errors
 	for _, ch := range util.Children(e) {
 		// Skip children with deprecated status if SkipDeprecated is enabled
-		if transformOpts.SkipDeprecated && ch.Node != nil {
-			var status *yang.Value
-			switch node := ch.Node.(type) {
-			case *yang.Container:
-				status = node.Status
-			case *yang.Leaf:
-				status = node.Status
-			case *yang.LeafList:
-				status = node.Status
-			case *yang.List:
-				status = node.Status
-			case *yang.Typedef:
-				status = node.Status
-			}
-			if status != nil && status.Name == "deprecated" {
-				continue // skip this entity
-			}
+		if transformOpts.SkipDeprecated && isDeprecated(ch.Node) {
+			continue // skip this entity
 		}
 
 		// Skip children with obsolete status if SkipObsolete is enabled
-		if transformOpts.SkipObsolete && ch.Node != nil {
-			var status *yang.Value
-			switch node := ch.Node.(type) {
-			case *yang.Container:
-				status = node.Status
-			case *yang.Leaf:
-				status = node.Status
-			case *yang.LeafList:
-				status = node.Status
-			case *yang.List:
-				status = node.Status
-			case *yang.Typedef:
-				status = node.Status
-			}
-			if status != nil && status.Name == "obsolete" {
-				continue // skip this entity
-			}
+		if transformOpts.SkipObsolete && isObsolete(ch.Node) {
+			continue // skip this entity
 		}
 
 		switch {
